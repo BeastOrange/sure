@@ -1,9 +1,12 @@
 empty:
   name: Family
+  locale: en
 
 dylan_family:
   name: The Dylan Family
+  locale: en
 
 inactive_trial:
   name: Inactive Trial Family
+  locale: en
   created_at: <%= 90.days.ago %>

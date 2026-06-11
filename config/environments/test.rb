@@ -61,6 +61,10 @@ Rails.application.configure do
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
+  # The app defaults to zh-CN, but the test suite asserts English strings (upstream).
+  # Locale behavior itself is covered by test/controllers/concerns/localize_test.rb.
+  config.i18n.default_locale = :en
+
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 

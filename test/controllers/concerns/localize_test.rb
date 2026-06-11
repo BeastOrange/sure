@@ -1,10 +1,23 @@
 require "test_helper"
 
 class LocalizeTest < ActionDispatch::IntegrationTest
+  # Production defaults to zh-CN (config/application.rb), but the test env runs
+  # with :en so upstream tests keep passing. Restore zh-CN here to verify the
+  # production default behavior.
+  def with_chinese_default_locale
+    original = I18n.default_locale
+    I18n.default_locale = :"zh-CN"
+    yield
+  ensure
+    I18n.default_locale = original
+  end
+
   test "uses default locale on login even when Accept-Language is supported" do
-    get new_session_url, headers: { "Accept-Language" => "fr-CA,fr;q=0.9" }
-    assert_response :success
-    assert_select "button", text: /登录/i
+    with_chinese_default_locale do
+      get new_session_url, headers: { "Accept-Language" => "fr-CA,fr;q=0.9" }
+      assert_response :success
+      assert_select "button", text: /登录/i
+    end
   end
 
   test "uses locale param on login when provided" do
@@ -14,9 +27,11 @@ class LocalizeTest < ActionDispatch::IntegrationTest
   end
 
   test "falls back to Chinese when Accept-Language is unsupported" do
-    get new_session_url, headers: { "Accept-Language" => "ru-RU,ru;q=0.9" }
-    assert_response :success
-    assert_select "button", text: /登录/i
+    with_chinese_default_locale do
+      get new_session_url, headers: { "Accept-Language" => "ru-RU,ru;q=0.9" }
+      assert_response :success
+      assert_select "button", text: /登录/i
+    end
   end
 
   test "uses family locale for onboarding when user locale is not set" do
