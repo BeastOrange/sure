@@ -2,7 +2,7 @@
 zh-CN:
   valuations:
     confirmation_contents:
-      this_will: 这将把账户价值在
+      this_will: 这将%{action_verb}账户在
       to_colon: 改为：
       total_account_value: 账户总价值
       holdings_value: 持仓价值

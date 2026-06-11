@@ -38,4 +38,19 @@ class I18nTest < ActiveSupport::TestCase
                     "Please run `i18n-tasks check-consistent-interpolations' to show them"
     assert_empty inconsistent_interpolations, error_message
   end
+
+  # zh-CN is the default locale; missing keys fall back to English and produce
+  # mixed-language UI. Keep this locale complete (see config/locales/p0/zh-CN.yml).
+  def test_no_missing_zh_cn_keys
+    missing_keys = @i18n.missing_keys(locales: [ :"zh-CN" ], types: [ :diff ])
+    assert_empty missing_keys,
+                 "Missing #{missing_keys.leaves.count} zh-CN i18n keys, run `i18n-tasks missing -l zh-CN' to show them"
+  end
+
+  def test_no_inconsistent_zh_cn_interpolations
+    inconsistent_interpolations = @i18n.inconsistent_interpolations(locales: [ :"zh-CN" ])
+    error_message = "#{inconsistent_interpolations.leaves.count} zh-CN i18n keys have inconsistent interpolations.\n" \
+                    "Please run `i18n-tasks check-consistent-interpolations' to show them"
+    assert_empty inconsistent_interpolations, error_message
+  end
 end

@@ -5,8 +5,8 @@ zh-CN:
       account:
         balance: 余额
         currency: 币种
-        family: 家庭
-        family_id: 家庭
+        family: "%{moniker}"
+        family_id: "%{moniker}"
         name: 名称
         subtype: 子类型
     models:

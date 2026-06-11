@@ -85,7 +85,7 @@ zh-CN:
         other: 接近%{count}年
       half_a_minute: 半分钟
       less_than_x_minutes:
-        one: 不到%{count}分钟
+        one: 不到 1 分钟
         other: 不到%{count}分钟
       less_than_x_seconds:
         one: 不到%{count}秒
