@@ -159,7 +159,7 @@ class Demo::Generator
       family = Family.create!(
         name: family_name,
         currency: "USD",
-        locale: "en",
+        locale: "zh-CN",
         country: "US",
         timezone: "America/New_York",
         date_format: "%m-%d-%Y"

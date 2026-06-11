@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_01_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_10_120500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -749,7 +749,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_01_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "currency", default: "USD"
-    t.string "locale", default: "en"
+    t.string "locale", default: "zh-CN"
     t.string "stripe_customer_id"
     t.string "date_format", default: "%m-%d-%Y"
     t.string "country", default: "US"

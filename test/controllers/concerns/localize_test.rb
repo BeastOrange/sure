@@ -1,28 +1,38 @@
 require "test_helper"
 
 class LocalizeTest < ActionDispatch::IntegrationTest
-  test "uses Accept-Language top locale on login when supported" do
+  test "uses default locale on login even when Accept-Language is supported" do
     get new_session_url, headers: { "Accept-Language" => "fr-CA,fr;q=0.9" }
+    assert_response :success
+    assert_select "button", text: /登录/i
+  end
+
+  test "uses locale param on login when provided" do
+    get new_session_url(locale: "fr"), headers: { "Accept-Language" => "zh-CN,zh;q=0.9" }
     assert_response :success
     assert_select "button", text: /Se connecter/i
   end
 
-  test "falls back to English when Accept-Language is unsupported" do
+  test "falls back to Chinese when Accept-Language is unsupported" do
     get new_session_url, headers: { "Accept-Language" => "ru-RU,ru;q=0.9" }
     assert_response :success
-    assert_select "button", text: /Log in/i
+    assert_select "button", text: /登录/i
   end
 
-  test "uses Accept-Language for onboarding when user locale is not set" do
-    sign_in users(:family_admin)
+  test "uses family locale for onboarding when user locale is not set" do
+    user = users(:family_admin)
+    user.family.update!(locale: "zh-CN")
+    sign_in user
 
     get preferences_onboarding_url, headers: { "Accept-Language" => "es-ES,es;q=0.9" }
     assert_response :success
-    assert_select "h1", text: /Configura tus preferencias/i
+    assert_select "h1", text: /配置您的偏好设置/i
   end
 
-  test "falls back to family locale when Accept-Language is unsupported" do
-    sign_in users(:family_admin)
+  test "uses family locale when it differs from default locale" do
+    user = users(:family_admin)
+    user.family.update!(locale: "en")
+    sign_in user
 
     get preferences_onboarding_url, headers: { "Accept-Language" => "ru-RU,ru;q=0.9" }
     assert_response :success
@@ -48,10 +58,12 @@ class LocalizeTest < ActionDispatch::IntegrationTest
   end
 
   test "ignores invalid locale param and uses family locale" do
-    sign_in users(:family_admin)
+    user = users(:family_admin)
+    user.family.update!(locale: "zh-CN")
+    sign_in user
 
     get preferences_onboarding_url(locale: "invalid_locale")
     assert_response :success
-    assert_select "h1", text: /Configure your preferences/i
+    assert_select "h1", text: /配置您的偏好设置/i
   end
 end
