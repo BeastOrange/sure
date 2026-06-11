@@ -27,6 +27,13 @@ search:
     - app/assets/fonts
     - app/assets/videos
     - app/assets/builds
+ignore_inconsistent_interpolations:
+  # en uses %{moniker} here, but User (unlike Account) has no human_attribute_name
+  # override injecting that option, so a literal label is the safe choice — see
+  # PR we-promise/sure#2283 (Codex P2). de/es/fr/nb/nl/pt-BR/ro/tr/zh-TW are
+  # also literal for these keys.
+  - 'activerecord.attributes.user.family'
+  - 'activerecord.attributes.user.family_id'
 ignore_unused:
   - 'activerecord.attributes.*' # i18n-tasks does not detect these on forms, forms validations (https://github.com/glebm/i18n-tasks/blob/0b4b483c82664f26c5696fb0f6aa1297356e4683/templates/config/i18n-tasks.yml#L146)
   - 'activerecord.models.*' # i18n-tasks does not detect use in dynamic model names (e.g. object.model_name.human)
