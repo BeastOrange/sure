@@ -2,7 +2,7 @@ require "test_helper"
 
 class TransfersControllerTest < ActionDispatch::IntegrationTest
   setup do
-    sign_in users(:family_admin)
+    sign_in @user = users(:family_admin)
   end
 
   test "should get new" do
@@ -164,8 +164,51 @@ class TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "soft deletes transfer" do
     assert_difference -> { Transfer.count }, -1 do
-      delete transfer_url(transfers(:one))
+      assert_no_difference [ "Entry.count", "Transaction.count" ] do
+        delete transfer_url(transfers(:one))
+      end
     end
+  end
+
+  test "deletes manually created transfer with both underlying transactions" do
+    transfer = Transfer::Creator.new(
+      family: @user.family,
+      source_account_id: accounts(:depository).id,
+      destination_account_id: accounts(:credit_card).id,
+      date: Date.current,
+      amount: 20
+    ).create
+
+    outflow_entry = transfer.outflow_transaction.entry
+    inflow_entry = transfer.inflow_transaction.entry
+
+    assert transfer.destroyable_with_entries?
+
+    assert_difference -> { Transfer.count } => -1,
+                      -> { Entry.count } => -2,
+                      -> { Transaction.count } => -2 do
+      delete transfer_url(transfer), params: { delete_entries: "1" }
+    end
+
+    assert_redirected_to transactions_url
+    assert_equal "Transfer and transactions deleted", flash[:notice]
+    assert_not Entry.exists?(outflow_entry.id)
+    assert_not Entry.exists?(inflow_entry.id)
+  end
+
+  test "does not delete imported transfer transactions" do
+    transfer = transfers(:one)
+    transfer.outflow_transaction.entry.update!(source: "simplefin", external_id: "outflow-#{SecureRandom.uuid}")
+    transfer.inflow_transaction.entry.update!(source: "simplefin", external_id: "inflow-#{SecureRandom.uuid}")
+
+    assert_not transfer.destroyable_with_entries?
+
+    assert_no_difference [ "Transfer.count", "Entry.count", "Transaction.count" ] do
+      delete transfer_url(transfer), params: { delete_entries: "1" }
+    end
+
+    assert_redirected_to transactions_url
+    assert_equal "This transfer links existing transactions and cannot delete the underlying transactions.", flash[:alert]
   end
 
   test "can add notes to transfer" do

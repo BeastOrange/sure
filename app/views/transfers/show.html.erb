@@ -101,6 +101,29 @@
                           font-medium border border-secondary",
                 data:   { turbo_confirm: true, turbo_frame: "_top" } %>
         </div>
+        <% if @transfer.destroyable_with_entries? %>
+          <div class="flex items-center justify-between gap-2 p-3">
+            <div class="text-sm space-y-1">
+              <h4 class="text-primary"><%= t(".delete_entries_title") %></h4>
+              <p class="text-secondary"><%= t(".delete_entries_subtitle") %></p>
+            </div>
+            <%= render DS::Button.new(
+              text: t(".delete_entries"),
+              variant: "outline-destructive",
+              href: transfer_path(@transfer),
+              method: :delete,
+              params: { delete_entries: "1" },
+              confirm: CustomConfirm.new(
+                destructive: true,
+                high_severity: true,
+                title: t(".delete_entries_confirm_title"),
+                body: t(".delete_entries_confirm_body"),
+                btn_text: t(".delete_entries")
+              ),
+              frame: "_top"
+            ) %>
+          </div>
+        <% end %>
       </div>
     <% end %>
   <% end %>

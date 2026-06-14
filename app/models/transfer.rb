@@ -65,6 +65,21 @@ class Transfer < ApplicationRecord
     outflow_transaction&.entry&.sync_account_later
   end
 
+  def destroyable_with_entries?
+    transfer_entries.size == 2 && transfer_entries.all? { |entry| manually_created_transfer_entry?(entry) }
+  end
+
+  def destroy_with_entries!
+    raise ActiveRecord::RecordNotDestroyed.new("Cannot delete transfer entries", self) unless destroyable_with_entries?
+
+    entries = transfer_entries
+
+    Transfer.transaction do
+      destroy!
+      entries.each { |entry| entry.destroy! if Entry.exists?(entry.id) }
+    end
+  end
+
   def to_account
     inflow_transaction&.entry&.account
   end
@@ -147,5 +162,13 @@ class Transfer < ApplicationRecord
       date_diff = (inflow_transaction.entry.date - outflow_transaction.entry.date).abs
       max_days = status == "confirmed" ? 30 : 4
       errors.add(:base, :within_days, count: max_days) if date_diff > max_days
+    end
+
+    def transfer_entries
+      [ inflow_transaction&.entry, outflow_transaction&.entry ].compact
+    end
+
+    def manually_created_transfer_entry?(entry)
+      entry.user_modified? && entry.source.blank? && entry.external_id.blank? && entry.import_id.blank?
     end
 end

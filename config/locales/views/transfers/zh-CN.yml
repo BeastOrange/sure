@@ -4,6 +4,8 @@ zh-CN:
     create:
       success: 转账已创建
     destroy:
+      destroyed_with_entries: 转账和交易已删除
+      entries_not_destroyable: 此转账关联的是已有交易，不能删除底层交易。
       success: 转账已移除
     form:
       amount: 金额
@@ -27,6 +29,11 @@ zh-CN:
       title: 新建转账
     show:
       delete: 移除转账
+      delete_entries: 删除转账和交易
+      delete_entries_confirm_body: 这会永久删除转出和转入两条交易，并影响历史余额。此操作无法撤销。
+      delete_entries_confirm_title: 删除转账和交易？
+      delete_entries_subtitle: 此操作会删除这次手动创建的两条底层交易，无法撤销。
+      delete_entries_title: 删除这次转账和交易？
       delete_subtitle: 此操作仅移除转账记录，不会删除底层交易数据。
       delete_title: 确认移除转账？
       details: 详情

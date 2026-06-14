@@ -79,11 +79,23 @@ class TransfersController < ApplicationController
   end
 
   def destroy
-    outflow_account = @transfer.outflow_transaction.entry.account
-    return unless require_account_permission!(outflow_account, redirect_path: transactions_url)
+    if delete_entries_requested?
+      return unless require_transfer_endpoint_permissions!
 
-    @transfer.destroy!
-    redirect_back_or_to transactions_url, notice: t(".success")
+      unless @transfer.destroyable_with_entries?
+        redirect_back_or_to transactions_url, alert: t(".entries_not_destroyable")
+        return
+      end
+
+      @transfer.destroy_with_entries!
+      redirect_back_or_to transactions_url, notice: t(".destroyed_with_entries")
+    else
+      outflow_account = @transfer.outflow_transaction.entry.account
+      return unless require_account_permission!(outflow_account, redirect_path: transactions_url)
+
+      @transfer.destroy!
+      redirect_back_or_to transactions_url, notice: t(".success")
+    end
   end
 
   def mark_as_recurring
@@ -187,5 +199,15 @@ class TransfersController < ApplicationController
     def update_transfer_details
       @transfer.outflow_transaction.update!(category_id: transfer_update_params[:category_id])
       @transfer.update!(notes: transfer_update_params[:notes])
+    end
+
+    def delete_entries_requested?
+      ActiveModel::Type::Boolean.new.cast(params[:delete_entries])
+    end
+
+    def require_transfer_endpoint_permissions!
+      [ @transfer.outflow_transaction.entry.account, @transfer.inflow_transaction.entry.account ].all? do |account|
+        require_account_permission!(account, redirect_path: transactions_url)
+      end
     end
 end

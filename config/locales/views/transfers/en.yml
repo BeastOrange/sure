@@ -4,6 +4,8 @@ en:
     create:
       success: Transfer created
     destroy:
+      destroyed_with_entries: Transfer and transactions deleted
+      entries_not_destroyable: This transfer links existing transactions and cannot delete the underlying transactions.
       success: Transfer removed
     form:
       amount: Amount
@@ -27,6 +29,11 @@ en:
       title: New transfer
     show:
       delete: Remove transfer
+      delete_entries: Delete transfer and transactions
+      delete_entries_confirm_body: This permanently deletes both the outgoing and incoming transactions, affects historical balances, and cannot be undone.
+      delete_entries_confirm_title: Delete transfer and transactions?
+      delete_entries_subtitle: This deletes the two manually created underlying transactions. This cannot be undone.
+      delete_entries_title: Delete this transfer and its transactions?
       delete_subtitle: This removes the transfer.  It will not delete the underlying
         transactions.
       delete_title: Remove transfer?
