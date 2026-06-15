@@ -113,6 +113,14 @@ jobs:
             echo EOF
           } >> $GITHUB_ENV
 
+      - name: Normalize image reference
+        id: image
+        shell: bash
+        run: |
+          image_name="$(printf '%s' "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          echo "name=${image_name}" >> "$GITHUB_OUTPUT"
+          echo "ref=${REGISTRY}/${image_name}" >> "$GITHUB_OUTPUT"
+
       - name: Get current date (RFC 3339 format)
         id: date
         run: echo "date=$(date -Iseconds)" >> $GITHUB_OUTPUT
@@ -121,7 +129,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ steps.image.outputs.ref }}
           flavor: latest=false
           tags: ${{ env.TAGS_SPEC }}
           labels: |
@@ -139,14 +147,14 @@ jobs:
           context: .
           build-args: BUILD_COMMIT_SHA=${{ github.sha }}
           platforms: 'linux/${{ matrix.platform }}'
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.platform }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache-${{ matrix.platform }},mode=max
+          cache-from: type=registry,ref=${{ steps.image.outputs.ref }}:cache-${{ matrix.platform }}
+          cache-to: type=registry,ref=${{ steps.image.outputs.ref }}:cache-${{ matrix.platform }},mode=max
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           push: true
           # DO NOT REMOVE `oci-mediatypes=true`, fixes annotation not showing up on job.merge.steps[-1]
           # ref: https://github.com/docker/build-push-action/discussions/1022
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},name-canonical=true,push-by-digest=true,oci-mediatypes=true
+          outputs: type=image,name=${{ steps.image.outputs.ref }},name-canonical=true,push-by-digest=true,oci-mediatypes=true
 
       - name: Export the Docker image digest
         if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event.inputs.push }}
@@ -195,10 +203,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Normalize image reference
+        id: image
+        shell: bash
+        run: |
+          image_name="$(printf '%s' "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          echo "name=${image_name}" >> "$GITHUB_OUTPUT"
+          echo "ref=${REGISTRY}/${image_name}" >> "$GITHUB_OUTPUT"
+
       - name: Merge and push Docker image
         env:
           TAGS: ${{ needs.build.outputs.tags }}
           DIGESTS_DIR: ${{ runner.temp }}/digests
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
           REF_NAME: ${{ github.ref_name }}
         shell: bash -xeuo pipefail {0}
         run: |
@@ -210,7 +227,7 @@ jobs:
 
           image_args=()
           for PLATFORM in amd64 arm64; do
-            image_args+=("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:$(<"${DIGESTS_DIR}/digest-${PLATFORM}")")
+            image_args+=("${IMAGE_REF}@sha256:$(<"${DIGESTS_DIR}/digest-${PLATFORM}")")
           done
 
           annotations=(
