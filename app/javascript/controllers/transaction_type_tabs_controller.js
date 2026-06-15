@@ -1,13 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 
-const ACTIVE_CLASSES = ["bg-container", "text-primary", "shadow-sm"];
-const INACTIVE_CLASSES = [
-  "hover:bg-container",
-  "text-subdued",
-  "hover:text-primary",
-  "hover:shadow-sm",
-];
-
+// Expense / income tabs render as a DS::SegmentedControl. Switching is
+// client-side here: it updates the form's hidden nature field and flips the
+// active segment without navigating (the href is a progressive-enhancement
+// fallback). Transfer is a plain link to the transfer form.
 export default class extends Controller {
   static targets = ["tab", "natureField"];
 
@@ -19,8 +15,12 @@ export default class extends Controller {
 
     this.tabTargets.forEach((tab) => {
       const isActive = tab === selectedTab;
-      tab.classList.remove(...(isActive ? INACTIVE_CLASSES : ACTIVE_CLASSES));
-      tab.classList.add(...(isActive ? ACTIVE_CLASSES : INACTIVE_CLASSES));
+      tab.classList.toggle("segmented-control__segment--active", isActive);
+      if (isActive) {
+        tab.setAttribute("aria-current", "true");
+      } else {
+        tab.removeAttribute("aria-current");
+      }
     });
   }
 }

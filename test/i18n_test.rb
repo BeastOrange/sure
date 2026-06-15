@@ -42,7 +42,7 @@ class I18nTest < ActiveSupport::TestCase
   # zh-CN is the default locale; missing keys fall back to English and produce
   # mixed-language UI. Keep this locale complete across config/locales/**/*zh-CN.yml.
   def test_no_missing_zh_cn_keys
-    missing_keys = @i18n.missing_keys(locales: [ :"zh-CN" ], types: [ :diff ])
+    missing_keys = @i18n.missing_keys(locales: [ "zh-CN" ], types: [ :diff ])
     assert_empty missing_keys,
                  "Missing #{missing_keys.leaves.count} zh-CN i18n keys, run `i18n-tasks missing -l zh-CN' to show them"
   end
