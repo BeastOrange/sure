@@ -102,16 +102,14 @@ class TransactionsFormExchangeRateTest < ApplicationSystemTestCase
 
     # Wait for EUR rate to load
     assert_selector "[data-transaction-form-target='exchangeRateContainer']", visible: true
-    first_rate = find("[data-transaction-form-target='exchangeRateField']").value
-    assert_equal "1.10", first_rate
+    first_rate = wait_for_exchange_rate("1.10")
 
     # Change to GBP
     find("select[data-money-field-target='currency']").find("option[value='GBP']").select_option
 
     # Wait for GBP rate to be updated
     assert_selector "[data-transaction-form-target='exchangeRateContainer']", visible: true
-    second_rate = find("[data-transaction-form-target='exchangeRateField']").value
-    assert_equal "1.27", second_rate
+    second_rate = wait_for_exchange_rate("1.27")
 
     # Rates should be different
     assert_not_equal first_rate, second_rate
@@ -143,4 +141,32 @@ class TransactionsFormExchangeRateTest < ApplicationSystemTestCase
     # Exchange rate UI should hide
     assert_selector "[data-transaction-form-target='exchangeRateContainer']", visible: false
   end
+
+  test "changing amount currency updates the symbol" do
+    @family.update!(currency: "CNY", enabled_currencies: [ "CNY", "USD" ])
+
+    visit new_transaction_path
+
+    initial_symbol = find("[data-money-field-target='symbol']").text
+    assert_equal "¥", initial_symbol
+
+    find("select[data-money-field-target='currency']").find("option[value='USD']").select_option
+
+    assert_selector "[data-money-field-target='symbol']", text: "$"
+  end
+
+  private
+
+    def wait_for_exchange_rate(expected_value)
+      assert_selector "[data-transaction-form-target='exchangeRateField']", visible: true
+
+      Timeout.timeout(Capybara.default_max_wait_time) do
+        loop do
+          value = find("[data-transaction-form-target='exchangeRateField']").value
+          return value if value == expected_value
+
+          sleep 0.05
+        end
+      end
+    end
 end
