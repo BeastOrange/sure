@@ -127,6 +127,8 @@ logs/security/
 
 # Added by codex
 .codex
+local-docs/
+output/
 
 # Ignore Playwright artifacts
 playwright-report/
