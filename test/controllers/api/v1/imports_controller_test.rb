@@ -84,7 +84,11 @@ class Api::V1::ImportsControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     assert_not_empty json_response["data"]
-    assert_equal @family.imports.count, json_response["meta"]["total_count"]
+    accessible_account_ids = @family.accounts.accessible_by(@user).select(:id)
+    expected_count = @family.imports.where(account_id: nil)
+                              .or(@family.imports.where(account_id: accessible_account_ids))
+                              .count
+    assert_equal expected_count, json_response["meta"]["total_count"]
 
     import_data = json_response["data"].detect { |data| data["id"] == @import.id }
     assert_not_nil import_data
@@ -1295,9 +1299,10 @@ class Api::V1::ImportsControllerTest < ActionDispatch::IntegrationTest
           },
           headers: api_headers(@api_key)
 
-    assert_response :unprocessable_entity
+    assert_response :not_found
     json_response = JSON.parse(response.body)
-    assert_includes json_response["errors"], "Account must belong to your family"
+    assert_equal "not_found", json_response["error"]
+    assert_equal "Account not found", json_response["message"]
   end
 
   test "should reject file upload exceeding max size" do
@@ -1377,7 +1382,102 @@ class Api::V1::ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
   end
 
+  test "limited member cannot list import bound to inaccessible account" do
+    private_import = @family.imports.create!(
+      type: "TransactionImport",
+      status: "pending",
+      account: accounts(:investment)
+    )
+    member_key = member_api_key
+
+    get api_v1_imports_url, headers: api_headers(member_key)
+    assert_response :success
+
+    import_ids = JSON.parse(response.body)["data"].map { |import| import["id"] }
+    assert_not_includes import_ids, private_import.id
+  end
+
+  test "limited member cannot show or list rows for import bound to inaccessible account" do
+    private_import = @family.imports.create!(
+      type: "TransactionImport",
+      status: "pending",
+      account: accounts(:investment),
+      raw_file_str: "date,amount,name\n01/15/2024,-10.00,Test",
+      date_col_label: "date",
+      amount_col_label: "amount",
+      name_col_label: "name"
+    )
+    private_import.rows.create!(source_row_number: 1, date: "01/15/2024", amount: "-10.00", currency: "USD", name: "Test")
+    member_key = member_api_key
+
+    get api_v1_import_url(private_import), headers: api_headers(member_key)
+    assert_response :not_found
+
+    get rows_api_v1_import_url(private_import), headers: api_headers(member_key)
+    assert_response :not_found
+  end
+
+  test "limited member cannot create import for inaccessible account" do
+    member_key = member_api_key
+
+    post api_v1_imports_url,
+         params: {
+           type: "TransactionImport",
+           account_id: accounts(:investment).id,
+           raw_file_content: "date,amount,name\n01/15/2024,-10.00,Test"
+         },
+         headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member cannot preflight import for inaccessible account" do
+    member_key = member_api_key
+
+    post preflight_api_v1_imports_url,
+         params: {
+           type: "TransactionImport",
+           account_id: accounts(:investment).id,
+           raw_file_content: "date,amount,name\n01/15/2024,-10.00,Test"
+         },
+         headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member can create import for writable shared account" do
+    member_key = member_api_key
+
+    assert_difference -> { @family.imports.count }, 1 do
+      post api_v1_imports_url,
+           params: {
+             type: "TransactionImport",
+             account_id: accounts(:depository).id,
+             raw_file_content: "date,amount,name\n01/15/2024,-10.00,Member Import"
+           },
+           headers: api_headers(member_key)
+    end
+
+    assert_response :created
+    import = Import.find(JSON.parse(response.body).dig("data", "id"))
+    assert_equal accounts(:depository).id, import.account_id
+  end
+
   private
+
+    def member_api_key
+      member = users(:family_member)
+      member.api_keys.active.destroy_all
+      ApiKey.create!(
+        user: member,
+        name: "Member RW Key",
+        scopes: [ "read_write" ],
+        source: "monitoring",
+        display_key: "test_member_rw_#{SecureRandom.hex(8)}"
+      ).tap do |key|
+        Redis.new.del("api_rate_limit:#{key.id}")
+      end
+    end
 
     def build_ndjson(records)
       records.map(&:to_json).join("\n")

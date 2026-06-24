@@ -12,7 +12,6 @@ class Api::V1::ValuationsController < Api::V1::BaseController
 
   def index
     family = current_resource_owner.family
-    accessible_account_ids = family.accounts.accessible_by(current_resource_owner).select(:id)
     valuations_query = family.entries
       .where(entryable_type: "Valuation", account_id: accessible_account_ids)
       .includes(:account, :entryable)
@@ -83,7 +82,7 @@ class Api::V1::ValuationsController < Api::V1::BaseController
       return
     end
 
-    account = current_resource_owner.family.accounts.find(valuation_account_id)
+    account = current_resource_owner.family.accounts.writable_by(current_resource_owner).find(valuation_account_id)
     requested_upsert = upsert_requested?
     existing_write = false
 
@@ -232,9 +231,10 @@ class Api::V1::ValuationsController < Api::V1::BaseController
   private
 
     def set_valuation
+      account_ids = action_name == "update" ? writable_account_ids : accessible_account_ids
       @entry = current_resource_owner.family
                  .entries
-                 .where(entryable_type: "Valuation")
+                 .where(entryable_type: "Valuation", account_id: account_ids)
                  .find(params[:id])
       @valuation = @entry.entryable
     rescue ActiveRecord::RecordNotFound
@@ -250,6 +250,14 @@ class Api::V1::ValuationsController < Api::V1::BaseController
 
     def ensure_write_scope
       authorize_scope!(:write)
+    end
+
+    def accessible_account_ids
+      @accessible_account_ids ||= current_resource_owner.family.accounts.accessible_by(current_resource_owner).select(:id)
+    end
+
+    def writable_account_ids
+      @writable_account_ids ||= current_resource_owner.family.accounts.writable_by(current_resource_owner).select(:id)
     end
 
     def apply_filters(query)

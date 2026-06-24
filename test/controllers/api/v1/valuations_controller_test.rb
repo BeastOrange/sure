@@ -303,6 +303,67 @@ class Api::V1::ValuationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Updated notes", response_data["notes"]
   end
 
+  test "limited member cannot show valuation for inaccessible account" do
+    investment_account = accounts(:investment)
+    entry = investment_account.entries.create!(
+      name: "Private valuation",
+      date: Date.current,
+      amount: 12_345,
+      currency: "USD",
+      entryable: Valuation.new
+    )
+    member_key = member_api_key
+
+    get api_v1_valuation_url(entry), headers: api_headers(member_key)
+    assert_response :not_found
+  end
+
+  test "limited member cannot create valuation on read only shared account" do
+    read_only_account = accounts(:credit_card)
+    member_key = member_api_key
+
+    post api_v1_valuations_url,
+         params: {
+           valuation: {
+             account_id: read_only_account.id,
+             amount: 1000,
+             date: Date.current
+           }
+         },
+         headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member cannot update valuation on read only shared account" do
+    read_only_account = accounts(:credit_card)
+    entry = read_only_account.entries.create!(
+      name: "Shared valuation",
+      date: Date.current,
+      amount: 2000,
+      currency: "USD",
+      entryable: Valuation.new
+    )
+    member_key = member_api_key
+
+    put api_v1_valuation_url(entry),
+        params: { valuation: { notes: "Blocked" } },
+        headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "filter by inaccessible account_id returns empty list for limited member" do
+    member_key = member_api_key
+
+    get api_v1_valuations_url,
+        params: { account_id: accounts(:investment).id },
+        headers: api_headers(member_key)
+
+    assert_response :success
+    assert_empty JSON.parse(response.body)["valuations"]
+  end
+
   test "should reject update with read-only API key" do
     entry = @valuation.entry
     update_params = {
@@ -367,6 +428,20 @@ class Api::V1::ValuationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+    def member_api_key
+      member = users(:family_member)
+      member.api_keys.active.destroy_all
+      ApiKey.create!(
+        user: member,
+        name: "Member RW Key",
+        scopes: [ "read_write" ],
+        source: "monitoring",
+        display_key: "test_member_rw_#{SecureRandom.hex(8)}"
+      ).tap do |key|
+        Redis.new.del("api_rate_limit:#{key.id}")
+      end
+    end
 
     def api_headers(api_key)
       { "X-Api-Key" => api_key.plain_key }

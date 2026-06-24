@@ -8,8 +8,7 @@ class Api::V1::TradesController < Api::V1::BaseController
   before_action :set_trade, only: [ :show, :update, :destroy ]
 
   def index
-    family = current_resource_owner.family
-    trades_query = family.trades.visible
+    trades_query = trades_read_scope
 
     trades_query = apply_filters(trades_query)
     trades_query = trades_query.includes({ entry: :account }, :security, :category).reverse_chronological
@@ -39,7 +38,8 @@ class Api::V1::TradesController < Api::V1::BaseController
       return render_validation_error("Account ID is required", [ "Account ID is required" ])
     end
 
-    account = current_resource_owner.family.accounts.visible.find(trade_params[:account_id])
+    account = writable_accounts.visible.find(trade_params[:account_id])
+    validate_writable_transfer_account! if trade_params[:transfer_account_id].present?
 
     unless account.supports_trades?
       return render_validation_error(
@@ -119,8 +119,7 @@ class Api::V1::TradesController < Api::V1::BaseController
   private
 
     def set_trade
-      family = current_resource_owner.family
-      @trade = family.trades.visible.find(params[:id])
+      @trade = trades_scope_for_action.find(params[:id])
       @entry = @trade.entry
     rescue ActiveRecord::RecordNotFound
       render json: { error: "not_found", message: "Trade not found" }, status: :not_found
@@ -132,6 +131,38 @@ class Api::V1::TradesController < Api::V1::BaseController
 
     def ensure_write_scope
       authorize_scope!(:write)
+    end
+
+    def trades_read_scope
+      current_resource_owner.family.trades.visible
+        .joins(:entry)
+        .where(entries: { account_id: accessible_account_ids })
+    end
+
+    def trades_write_scope
+      current_resource_owner.family.trades.visible
+        .joins(:entry)
+        .where(entries: { account_id: writable_account_ids })
+    end
+
+    def trades_scope_for_action
+      action_name.in?(%w[update destroy]) ? trades_write_scope : trades_read_scope
+    end
+
+    def writable_accounts
+      current_resource_owner.family.accounts.writable_by(current_resource_owner)
+    end
+
+    def accessible_account_ids
+      @accessible_account_ids ||= current_resource_owner.family.accounts.accessible_by(current_resource_owner).select(:id)
+    end
+
+    def writable_account_ids
+      @writable_account_ids ||= writable_accounts.select(:id)
+    end
+
+    def validate_writable_transfer_account!
+      writable_accounts.visible.find(trade_params[:transfer_account_id])
     end
 
     def apply_filters(query)

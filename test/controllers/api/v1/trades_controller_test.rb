@@ -815,7 +815,95 @@ class Api::V1::TradesControllerTest < ActionDispatch::IntegrationTest
     assert trade_data.key?("notes")
   end
 
+  test "limited member cannot list trades for inaccessible investment account" do
+    member_key = member_api_key
+    inaccessible_trade = trades(:one)
+
+    get api_v1_trades_url,
+        params: { account_id: accounts(:investment).id },
+        headers: api_headers(member_key)
+    assert_response :success
+    assert_empty JSON.parse(response.body)["trades"]
+
+    get api_v1_trade_url(inaccessible_trade), headers: api_headers(member_key)
+    assert_response :not_found
+  end
+
+  test "limited member cannot create trade in inaccessible account" do
+    member_key = member_api_key
+
+    post "/api/v1/trades",
+      params: { trade: {
+        account_id: @investment_account.id,
+        type: "buy",
+        date: Date.current,
+        qty: 1,
+        price: 100,
+        currency: "USD",
+        ticker: "AAPL|XNAS"
+      } },
+      headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member cannot create transfer when counterparty account is inaccessible" do
+    member_key = member_api_key
+    @investment_account.share_with!(users(:family_member), permission: "full_control")
+
+    post "/api/v1/trades",
+      params: { trade: {
+        account_id: @investment_account.id,
+        type: "withdrawal",
+        date: Date.current,
+        amount: 100,
+        currency: "USD",
+        transfer_account_id: accounts(:other_asset).id
+      } },
+      headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member cannot update trade on read only shared account" do
+    @investment_account.share_with!(users(:family_member), permission: "read_only")
+    member_key = member_api_key
+    trade = trades(:one)
+
+    patch api_v1_trade_url(trade),
+          params: { trade: { notes: "Blocked update" } },
+          headers: api_headers(member_key)
+
+    assert_response :not_found
+  end
+
+  test "limited member cannot destroy trade on read only shared account" do
+    @investment_account.share_with!(users(:family_member), permission: "read_only")
+    member_key = member_api_key
+    trade = trades(:one)
+
+    assert_no_difference("Trade.count") do
+      delete api_v1_trade_url(trade), headers: api_headers(member_key)
+    end
+
+    assert_response :not_found
+  end
+
   private
+
+    def member_api_key
+      member = users(:family_member)
+      member.api_keys.active.destroy_all
+      ApiKey.create!(
+        user: member,
+        name: "Member RW Key",
+        key: ApiKey.generate_secure_key,
+        scopes: %w[read_write],
+        source: "monitoring"
+      ).tap do |key|
+        Redis.new.del("api_rate_limit:#{key.id}")
+      end
+    end
 
     def read_write_api_key
       @read_write_api_key ||= ApiKey.create!(

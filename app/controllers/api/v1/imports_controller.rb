@@ -10,8 +10,7 @@ class Api::V1::ImportsController < Api::V1::BaseController
   before_action :set_import, only: [ :rows ]
 
   def index
-    family = current_resource_owner.family
-    imports_query = family.imports.ordered
+    imports_query = import_scope.ordered
 
     # Apply filters
     if params[:status].present?
@@ -71,7 +70,9 @@ class Api::V1::ImportsController < Api::V1::BaseController
 
     # 2. Build the import object with permitted config attributes
     @import = family.imports.build(import_config_params.merge(type: type))
-    @import.account_id = params[:account_id] if params[:account_id].present?
+    if params[:account_id].present?
+      @import.account = family.accounts.writable_by(current_resource_owner).find(params[:account_id])
+    end
 
     # 3. Attach the uploaded file if present (with validation)
     if params[:file].present?
@@ -131,13 +132,19 @@ class Api::V1::ImportsController < Api::V1::BaseController
       }, status: :unprocessable_entity
     end
 
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "not_found", message: "Account not found" }, status: :not_found
   rescue StandardError => e
     Rails.logger.error "ImportsController#create error: #{e.message}"
     render json: { error: "internal_server_error", message: "An unexpected error occurred." }, status: :internal_server_error
   end
 
   def preflight
-    preflight_result = Import::Preflight.new(family: current_resource_owner.family, params: preflight_params).call
+    preflight_result = Import::Preflight.new(
+      family: current_resource_owner.family,
+      params: preflight_params,
+      resource_owner: current_resource_owner
+    ).call
     render json: preflight_result.payload, status: preflight_result.status
   rescue ActiveRecord::RecordNotFound
     render json: {
@@ -175,7 +182,10 @@ class Api::V1::ImportsController < Api::V1::BaseController
     end
 
     def import_scope
-      current_resource_owner.family.imports
+      family = current_resource_owner.family
+      accessible_account_ids = family.accounts.accessible_by(current_resource_owner).select(:id)
+
+      family.imports.where(account_id: nil).or(family.imports.where(account_id: accessible_account_ids))
     end
 
     def render_import_not_found
