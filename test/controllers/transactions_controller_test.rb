@@ -35,6 +35,27 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_enqueued_with(job: SyncJob)
   end
 
+  test "create renders validation error when account is missing" do
+    assert_no_difference [ "Entry.count", "Transaction.count" ] do
+      post transactions_url, params: {
+        entry: {
+          name: "New transaction without account",
+          date: Date.current,
+          currency: "USD",
+          amount: 100,
+          nature: "outflow",
+          entryable_type: "Transaction",
+          entryable_attributes: {}
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "form[action=?]", transactions_path
+    assert_select "label#account_id_label .text-destructive", text: "*"
+    assert_select ".text-destructive", text: /Account/
+  end
+
   test "updates with transaction details" do
     assert_no_difference [ "Entry.count", "Transaction.count" ] do
       patch transaction_url(@entry), params: {

@@ -36,13 +36,14 @@ class StyledFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
+    field_options = normalize_options(options, html_options)
     selected_value =
-      if options.key?(:selected)
-        options[:selected]
+      if field_options.key?(:selected)
+        field_options[:selected]
       elsif @object.respond_to?(method)
         @object.public_send(method)
       end
-    placeholder = options[:prompt] || options[:include_blank] || options[:placeholder] || I18n.t("helpers.select.default_label")
+    placeholder = field_options[:prompt] || field_options[:include_blank] || field_options[:placeholder] || I18n.t("helpers.select.default_label")
 
     @template.render(
       DS::Select.new(
@@ -51,13 +52,14 @@ class StyledFormBuilder < ActionView::Helpers::FormBuilder
         items: collection.map { |item| { value: item.public_send(value_method), label: item.public_send(text_method), object: item } },
         selected: selected_value,
         placeholder: placeholder,
-        searchable: options.fetch(:searchable, false),
-        menu_placement: options[:menu_placement],
-        variant: options.fetch(:variant, :simple),
-        include_blank: options[:include_blank],
-        label: options[:label],
-        container_class: options[:container_class],
-        label_tooltip: options[:label_tooltip],
+        searchable: field_options.fetch(:searchable, false),
+        menu_placement: field_options[:menu_placement],
+        variant: field_options.fetch(:variant, :simple),
+        include_blank: field_options[:include_blank],
+        label: field_options[:label],
+        required: field_options[:required],
+        container_class: field_options[:container_class],
+        label_tooltip: field_options[:label_tooltip],
         html_options: html_options
       )
     )
@@ -146,7 +148,7 @@ class StyledFormBuilder < ActionView::Helpers::FormBuilder
       if options[:required]
         label_text = @template.safe_join([
           label_text == true ? method.to_s.humanize : label_text,
-          @template.tag.span("*", class: "text-red-500 ml-0.5")
+          @template.tag.span("*", class: "text-destructive ml-0.5")
         ])
       end
 

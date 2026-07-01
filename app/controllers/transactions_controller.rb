@@ -96,7 +96,18 @@ class TransactionsController < ApplicationController
   end
 
   def create
-    account = Current.user.accessible_accounts.find(params.dig(:entry, :account_id))
+    account_id = params.dig(:entry, :account_id)
+
+    if account_id.blank?
+      @entry = Current.family.entries.new(entry_params)
+      @entry.entryable ||= Transaction.new
+      @entry.errors.add(:account, :blank)
+      set_new_transaction_form_options
+      render :new, status: :unprocessable_entity
+      return
+    end
+
+    account = Current.user.accessible_accounts.find(account_id)
 
     return unless require_account_permission!(account)
 

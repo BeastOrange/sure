@@ -3,7 +3,10 @@
 <div class="relative" data-controller="select <%= "list-filter" if searchable %> form-dropdown" data-select-menu-placement-value="<%= menu_placement %>" data-action="dropdown:select->form-dropdown#onSelect">
   <div class="form-field <%= options[:container_class] %>">
     <div class="form-field__body">
-        <%= form.label method, options[:label], class: "form-field__label", id: "#{method}_label" if options[:label].present? %>
+        <% if options[:label].present? %>
+          <% label_text = options[:required] ? safe_join([ options[:label], tag.span("*", class: "text-destructive ml-0.5") ]) : options[:label] %>
+          <%= form.label method, label_text, class: "form-field__label", id: "#{method}_label" %>
+        <% end %>
         <%= form.hidden_field method,
             value: @selected_value,
             data: {
