@@ -358,6 +358,8 @@ class ReportsController < ApplicationController
     def build_transactions_breakdown
       # Base query: all transactions in the period
       # Exclude transfers, one-time, and CC payments (matching income_statement logic)
+      tax_advantaged_account_ids = Current.family.tax_advantaged_account_ids
+
       transactions = Transaction
         .joins(:entry)
         .joins(entry: :account)
@@ -366,6 +368,9 @@ class ReportsController < ApplicationController
         .where(entries: { entryable_type: "Transaction", excluded: false, date: @period.date_range })
         .where.not(kind: Transaction::BUDGET_EXCLUDED_KINDS)
         .includes(entry: :account, category: :parent)
+      if tax_advantaged_account_ids.present?
+        transactions = transactions.where.not(accounts: { id: tax_advantaged_account_ids })
+      end
 
       # Apply filters (includes finance account scoping)
       transactions = apply_transaction_filters(transactions)
@@ -378,6 +383,9 @@ class ReportsController < ApplicationController
         .merge(Account.included_in_reports)
         .where(entries: { entryable_type: "Trade", excluded: false, date: @period.date_range })
         .includes(entry: :account, category: :parent)
+      if tax_advantaged_account_ids.present?
+        trades = trades.where.not(accounts: { id: tax_advantaged_account_ids })
+      end
 
       trades = apply_entry_filters(trades)
 

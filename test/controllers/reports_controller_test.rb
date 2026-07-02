@@ -386,6 +386,34 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_select "tr[data-category='category-#{subcategory_games.id}']", text: /^Games/
   end
 
+  test "index excludes tax-advantaged account transactions from activity breakdown" do
+    taxable_category = @family.categories.create!(name: "Reports Taxable Income", color: "#111111")
+    retirement_category = @family.categories.create!(name: "Reports Retirement Income", color: "#222222")
+    taxable_account = @family.accounts.create!(
+      owner: @user,
+      name: "Reports Taxable Brokerage",
+      balance: 0,
+      currency: "USD",
+      accountable: Investment.new(subtype: "brokerage")
+    )
+    retirement_account = @family.accounts.create!(
+      owner: @user,
+      name: "Reports 401k",
+      balance: 0,
+      currency: "USD",
+      accountable: Investment.new(subtype: "401k")
+    )
+
+    create_transaction(account: taxable_account, name: "Taxable dividend", amount: -100, category: taxable_category)
+    create_transaction(account: retirement_account, name: "401k dividend", amount: -200, category: retirement_category)
+
+    get reports_path(period_type: :monthly)
+    assert_response :ok
+
+    assert_select "tr[data-category='category-#{taxable_category.id}']", text: /Reports Taxable Income/
+    assert_select "tr[data-category='category-#{retirement_category.id}']", count: 0
+  end
+
   test "monthly period navigation shows previous month link" do
     get reports_path(period_type: :monthly)
     assert_response :ok
