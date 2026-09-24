@@ -4,39 +4,54 @@ zh-CN:
     self_hostable:
       redis_configured: Redis 现已正确配置！您现在可以设置您的 Sure 应用了。
   shared:
+    cancel: 取消
     confirm_modal:
       accept: 确认
       body_html: "<p>此决定无法撤销</p>"
       cancel: 取消
       title: 确定吗？
-    money_field:
-      label: 金额
+    custom_confirm:
+      default_body: 此操作不可逆。
+      default_btn_text: 确认
+      default_title: 确定吗？
+      resource_deletion_body: 确定要删除%{resource}吗？此操作不可逆。
+      resource_deletion_btn_text: 删除%{resource}
+      resource_deletion_title: 删除%{resource}？
+    dot_separator: "·"
     exchange_rate_tabs:
       calculate_rate_tab: 计算汇率
       convert_tab: 使用汇率换算
       destination_amount: 目标金额
       exchange_rate: 汇率
       exchange_rate_help: 选择如何输入金额。
-    syncing_notice:
-      syncing: 账户数据同步中……
-    require_admin: 只有管理员才能执行此操作
-    custom_confirm:
-      default_title: 确定吗？
-      default_body: 此操作不可逆。
-      default_btn_text: 确认
     family_moniker:
       group_plural: 组
       group_singular: 组
       plural: 家庭
       singular: 家庭
-    trend_change:
-      no_change: 无变化
-    cancel: 取消
-    transaction_tabs:
-      expense: 支出
-      income: 收入
-      transfer: 转账
+    money_field:
+      label: 金额
     preview: 预览
+    require_admin: 只有管理员才能执行此操作
+    require_connector_owner: "你只能管理自己添加的连接"
+    sidekiq_health_banner:
+      body: "后台任务未处理，因此余额、净值和账户同步可能已过期或缺失。"
+      cta: "查看系统健康状态"
+      reasons:
+        no_worker_processes: "没有 Sidekiq 工作进程连接。请启动工作进程容器或 systemd 单元。"
+        queue_backed_up: "队列中等待最久的任务已超过延迟预算。工作进程仍在运行，但处理速度落后。"
+        redis_unreachable: "应用无法连接 Redis。请检查 REDIS_URL 和 Redis 服务状态。"
+        stale_heartbeat: "Sidekiq 工作进程近期未发送心跳，可能卡住或已崩溃。"
+      title: "部分数据可能已过期"
     sync_toast:
       message: 有新数据可用
       refresh: 刷新
+    syncing_notice:
+      syncing: 账户数据同步中……
+    transaction_tabs:
+      aria: "交易视图标签"
+      expense: 支出
+      income: 收入
+      transfer: 转账
+    trend_change:
+      no_change: 无变化

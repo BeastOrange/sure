@@ -9,6 +9,8 @@ zh-CN:
       mileage: 里程
       mileage_placeholder: '15000'
       mileage_unit: 单位
+      mileage_unit_kilometers: "公里"
+      mileage_unit_miles: "英里"
       model: 车型
       model_placeholder: 凯美瑞
       year: 年份
@@ -26,10 +28,10 @@ zh-CN:
     tabs:
       overview:
         current_price: 当前价格
+        edit_account_details: 编辑账户详情
         make_model: 品牌型号
         mileage: 里程
         purchase_price: 买入价
         trend: 走势
         unknown: 未知
         year: 年份
-        edit_account_details: 编辑账户详情

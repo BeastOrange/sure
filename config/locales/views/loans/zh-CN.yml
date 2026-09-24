@@ -7,18 +7,31 @@ zh-CN:
       initial_balance: 原始贷款余额
       interest_rate: 利率
       interest_rate_placeholder: '5.25'
+      none: 无
+      rate_change_add: "添加利率变更"
+      rate_change_effective_date: "生效日期"
+      rate_change_rate: "利率"
+      rate_change_remove: "移除"
+      rate_changes: "利率变更"
+      rate_changes_empty: "尚未记录利率变更。贷款按上方利率计算。"
+      rate_changes_hint: "每行设置从生效日期起、至下一条为止适用的利率。重新输入同一日期会替换该行，不会添加重复行。"
       rate_type: 利率类型
+      rate_type_adjustable: "可调整"
+      rate_type_fixed: "固定"
+      rate_type_variable: "浮动"
+      start_date: "放款日期"
+      start_date_hint: "贷款发放日期。留空则使用账户的开户日期。"
+      subtype_none: 无
+      subtype_prompt: 选择贷款类型
       term_months: 期限（月）
       term_months_placeholder: '360'
-      none: 无
-      subtype_prompt: 选择贷款类型
-      subtype_none: 无
     new:
       title: 请输入贷款详情
     overview:
       interest_rate: 利率
       monthly_payment: 月还款额
       not_applicable: 不适用
+      original_payoff_date: "原定还清日期"
       original_principal: 原始本金
       remaining_principal: 剩余本金
       term: 期限
@@ -26,12 +39,26 @@ zh-CN:
       unknown: 未知
     tabs:
       overview:
+        edit_loan_details: 编辑贷款详情
         interest_rate: 利率
         monthly_payment: 月供
         not_applicable: 不适用
+        original_payoff_date: "原定还清日期"
         original_principal: 原始本金
         remaining_principal: 剩余本金
         term: 期限
         type: 类型
         unknown: 未知
-        edit_loan_details: 编辑贷款详情
+      schedule:
+        date: "日期"
+        description: "根据原始余额、利率和期限，从 %{start_date} 起进行预测。不含额外还款。"
+        interest: "利息"
+        monthly_payment: "月供"
+        number: "#"
+        opening_payment: "首期付款"
+        payment: "付款"
+        principal: "本金"
+        remaining_balance: "剩余余额"
+        total_cost: "总成本"
+        total_interest: "总利息"
+        variable_rate_notice: "此贷款利率会随时间变化。计划会在每次记录的变更后重新摊还，同时保留原定还清日期并调整还款金额；尚未记录的利率变更会改变这些数值。"

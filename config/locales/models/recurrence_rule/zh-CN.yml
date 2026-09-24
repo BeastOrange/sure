@@ -1,0 +1,35 @@
+---
+zh-CN:
+  activerecord:
+    attributes:
+      recurrence_rule:
+        day_of_month: "每月日期"
+        frequency: "频率"
+        interval: "间隔"
+        month_of_year: "月份"
+        weekday: "星期几"
+        weekday_ordinal: "月内第几周"
+      recurring_transaction/recurrence_rules:
+        base: "循环规则："
+        day_of_month: "每月日期"
+        frequency: "频率"
+        interval: "间隔"
+        month_of_year: "月份"
+        weekday: "星期几"
+        weekday_ordinal: "月内第几周"
+    errors:
+      models:
+        recurrence_rule:
+          attributes:
+            day_of_month:
+              not_allowed_for_weekly: "不适用于每周规则"
+            month_of_year:
+              not_allowed: "仅适用于年度规则"
+              required_for_yearly: "年度规则必须填写"
+            weekday:
+              required_for_weekly: "每周规则必须填写"
+            weekday_ordinal:
+              not_allowed_for_weekly: "不适用于每周规则"
+              not_allowed_without_weekday: "仅在设置星期几时适用"
+              required_with_weekday: "设置星期几后必须填写"
+          day_spec_required: "选择月内某一天或星期几，两者必须且只能选一项。"

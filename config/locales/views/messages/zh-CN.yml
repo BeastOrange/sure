@@ -2,5 +2,8 @@
 zh-CN:
   messages:
     chat_form:
-      placeholder: 任何问题都可以问……
+      coming_soon: "即将推出"
       disclaimer: AI 回复仅供参考，不构成财务建议！
+      placeholder: 任何问题都可以问……
+    create:
+      chat_not_found: "此聊天已不可用。"

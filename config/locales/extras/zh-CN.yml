@@ -1,0 +1,40 @@
+---
+zh-CN:
+  admin:
+    users:
+      validate_password_criteria:
+        password_missing_case: "密码必须同时包含大写和小写字母。"
+        password_missing_number: "密码必须至少包含一个数字。"
+        password_missing_special: "密码必须至少包含一个特殊字符。"
+        password_too_short: "密码至少需要 8 个字符。"
+  buy: "买入"
+  card_fee: "卡费"
+  card_payment: "信用卡还款"
+  card_refund: "卡退款"
+  cash_withdrawal: "现金取款"
+  contribution: "入账"
+  dividend: "股息"
+  interest: "利息"
+  onchain_wallet_items:
+    link_wallet:
+      errors:
+        already_linked: "此地址已关联。"
+        unrecognized_address: "无法识别此钱包地址。"
+    preview_wallet:
+      errors:
+        address_required: "请输入钱包地址。"
+        already_linked: "此地址已关联。"
+        unrecognized_address: "无法识别此钱包地址。"
+  sell: "卖出"
+  settings:
+    ai_prompts:
+      error_message_for:
+        multiple_errors: "以下多条提示词存在错误："
+    providers:
+      trade_republic_panel:
+        requires_update: "需要更新"
+  tax_refund: "税款退款"
+  transactions:
+    respond_with_created_entry:
+      created: "交易已创建"
+  withdrawal: "提现"

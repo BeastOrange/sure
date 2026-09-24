@@ -1,10 +1,16 @@
 ---
 zh-CN:
   trades:
+    api_errors:
+      activity_label_must_match_type: "type 为 %{type} 时，investment_activity_label 必须是 %{label}"
+      invalid_activity_label: "投资活动标签无效"
+      invalid_type: "类型无效"
+      supported_types: "type 必须是以下之一：%{types}"
     form:
       account: 转账账户（可选）
       account_prompt: 搜索账户
       amount: 金额
+      dividend_requires_security: 分红需要证券
       fee: 交易手续费
       holding: 代码
       holding_optional: 代码（可选）
@@ -12,25 +18,34 @@ zh-CN:
       qty: 数量
       submit: 添加交易
       ticker_placeholder: AAPL
+      trade_requires_security: "买入和卖出交易必须指定证券（股票代码）"
       type: 类型
       type_buy: 买入
-      type_sell: 卖出
       type_deposit: 存入
-      type_withdrawal: 提现
       type_dividend: 分红
       type_interest: 利息
-      dividend_requires_security: 分红需要证券
+      type_sell: 卖出
+      type_withdrawal: 提现
     header:
       buy: 买入
-      sell: 卖出
-      dividend: 分红
-      interest: 利息
+      contribution: "入账"
       current_market_price_label: 当前市场价
+      dividend: 分红
+      exchange: "兑换"
+      fee: "费用"
+      interest: 利息
+      other: "其他"
       overview: 概览
       purchase_price_label: 买入价格
       purchase_qty_label: 买入数量
+      reinvestment: "再投资"
+      sell: 卖出
+      sweep_in: "转入"
+      sweep_out: "转出"
       symbol_label: 代码
       total_return_label: 未实现盈亏
+      transfer: "转账"
+      withdrawal: "提现"
     new:
       title: 新建交易
     show:
@@ -41,16 +56,16 @@ zh-CN:
       cost_per_share_label: 每股成本
       date_label: 日期
       delete: 删除
-      fee_label: 交易手续费
       delete_subtitle: 此操作无法撤销
       delete_title: 删除交易
       details: 详情
-      provider_disabled_warning: 价格更新已暂停——%{provider} 提供商已禁用。请在设置中重新启用，或将持仓重新映射到其他提供商。
       exclude_subtitle: 此交易不会计入报表和计算
       exclude_title: 从分析中排除
+      fee_label: 交易手续费
       no_category: 无分类
       note_label: 备注
       note_placeholder: 在此添加其他备注...
+      provider_disabled_warning: 价格更新已暂停——%{provider} 提供商已禁用。请在设置中重新启用，或将持仓重新映射到其他提供商。
       quantity_label: 数量
       sell: 卖出
       settings: 设置

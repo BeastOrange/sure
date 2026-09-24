@@ -1,12 +1,5 @@
 ---
 zh-CN:
-  defaults:
-    brand_name: "%{brand_name}"
-    product_name: "%{product_name}"
-    common:
-      close: 关闭
-  global:
-    expand: 展开
   activerecord:
     errors:
       messages:
@@ -14,6 +7,8 @@ zh-CN:
         restrict_dependent_destroy:
           has_many: 由于%{record}需要此记录，所以无法移除记录
           has_one: 由于%{record}需要此记录，所以无法移除记录
+  common:
+    close: 关闭
   date:
     abbr_day_names:
     - 周日
@@ -51,6 +46,7 @@ zh-CN:
       month_year: "%Y年%m月"
       short: "%m月%d日"
       short_month_year: "%Y年%m月"
+      short_with_year: "%b %d, %Y"
     month_names:
     -
     - 一月
@@ -115,6 +111,11 @@ zh-CN:
       month: 月
       second: 秒
       year: 年
+  defaults:
+    brand_name: "%{brand_name}"
+    common:
+      close: 关闭
+    product_name: "%{product_name}"
   errors:
     format: "%{attribute}%{message}"
     messages:
@@ -154,15 +155,21 @@ zh-CN:
       header:
         one: '%{count}个错误导致"%{model}"无法被保存。'
         other: '%{count}个错误导致"%{model}"无法被保存。'
+  global:
+    expand: 展开
   helpers:
     select:
+      default_label: 选择...
       prompt: 请选择
       search_placeholder: 搜索
-      default_label: 选择...
     submit:
       create: 新增%{model}
       submit: 储存%{model}
       update: 更新%{model}
+  mcp:
+    errors:
+      invalid_session_id: "MCP 会话 ID 无效"
+      unsupported_protocol_version: "不支持 MCP 协议版本：%{version}"
   number:
     currency:
       format:
@@ -213,6 +220,9 @@ zh-CN:
     precision:
       format:
         delimiter: ''
+  oauth:
+    registration:
+      invalid_redirect_uris: "redirect_uris 必须使用 https、回环地址的 http 或原生应用 URI scheme。"
   support:
     array:
       last_word_connector: 和
@@ -225,5 +235,3 @@ zh-CN:
       long: "%Y年%m月%d日 %H:%M"
       short: "%m月%d日 %H:%M"
     pm: 下午
-  common:
-    close: 关闭

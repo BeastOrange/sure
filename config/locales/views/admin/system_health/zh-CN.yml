@@ -1,0 +1,256 @@
+---
+zh-CN:
+  admin:
+    system_health:
+      push_notification:
+        body: "这是发给你 Sure 账户的测试推送通知。"
+        title: "Sure 测试通知"
+      push_notifications:
+        columns:
+          checked_at: "最近更新"
+          device: "设备"
+          environment: "APNs 环境"
+          status: "结果"
+        device: "设备 %{number}"
+        environments:
+          production: "生产"
+          sandbox: "沙盒"
+        messages:
+          cooldown: "请等待 30 秒后再发送测试。"
+          disabled: "运营方已禁用推送送达。"
+          enqueue_failed: "无法将测试加入队列。请检查 Sidekiq，然后刷新下方结果。"
+          hosted_only: "推送通知仅在托管模式下可用。"
+          ineligible: "只有处于活动状态的超级管理员可以发送测试通知。"
+          no_devices: "请在此账户的 Sure iOS 应用中启用推送通知后再测试。"
+          not_configured: "尚未配置 APNs 凭证。"
+          queued: "测试通知已加入队列。请刷新下方结果查看状态。"
+          ready: "向账户已注册的 iOS 设备发送测试通知。"
+          storage_unavailable: "无法保存测试请求。请检查共享缓存配置。"
+        pending: "等待中"
+        queueing: "正在排队…"
+        refresh: "刷新结果"
+        requested_at: "最近一次测试请求时间：%{time}"
+        result_help: "APNs 接受请求不代表通知已送达设备。刷新以查看工作进程结果。结果保留 24 小时。"
+        send_test: "发送测试推送通知"
+        statuses:
+          accepted: "APNs 已接受"
+          enqueue_failed: "无法加入队列；请检查 Sidekiq"
+          expired: "已过期，没有最终结果"
+          failed: "失败；请检查推送调试日志"
+          queued: "已排队"
+          rejected: "APNs 已拒绝；请检查推送调试日志"
+          retrying: "正在重试临时故障"
+          skipped: "已跳过：不再符合条件"
+          unregistered: "设备注册已失效"
+        title: "推送通知"
+      show:
+        ai:
+          adapters:
+            openai: "OpenAI 托管向量存储"
+            pgvector: "pgvector"
+            qdrant: "Qdrant"
+          alerts:
+            custom_openai:
+              message: "配置的端点未通过 /v1/vector_stores 存活检查。大多数本地及兼容 OpenAI 的端点不支持该 API。聊天和 PDF 处理仍可能正常；常见的本地配置方式是使用 pgvector 和单独的嵌入端点。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "托管向量存储在此自定义端点检查失败。"
+            embedding_dimensions_mismatch:
+              message: "嵌入端点返回的向量长度与 EMBEDDING_DIMENSIONS 不符。请按模型文档中的向量维度设置 EMBEDDING_MODEL 和 EMBEDDING_DIMENSIONS，然后重启 Sure 使环境变量在所有进程中生效。若已有数据使用不同维度，还需修改或重建 pgvector 嵌入列/表，并重新生成文档嵌入。"
+              title: "嵌入向量维度不匹配"
+            embedding_probe_failed:
+              message: "Sure 无法通过所配置的端点和模型创建简短测试嵌入。请检查 EMBEDDING_URI_BASE、EMBEDDING_MODEL、EMBEDDING_ACCESS_TOKEN 和嵌入提供商日志。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "嵌入实时检查失败"
+            embedding_probe_timeout:
+              message: "嵌入端点未在 AI_HEALTH_PROBE_TIMEOUT 设定时间内响应。如果提供商响应较慢，请提高此健康检查超时时间并重启 Sure，使所有进程采用新环境变量。如果普通 AI 聊天请求也超时，请另行提高 OPENAI_REQUEST_TIMEOUT。"
+              title: "嵌入实时检查超时"
+            function_calling_not_used:
+              message: "端点接受了 tools 参数，但模型返回了文本，而没有调用健康检查工具。AI 助手必须通过工具调用读取财务数据，否则聊天可能没有回答或编造数字。建议选择提供商文档明确支持工具调用的模型。"
+              title: "模型没有调用所请求的工具"
+            function_calling_unsupported:
+              message: "端点可以处理普通聊天请求，但拒绝了携带 tools 参数的请求。AI 助手需要通过工具调用读取账户、交易和持仓；如果模型不支持工具调用，聊天会持续失败（常见为 404）。请选择其提供商文档明确支持工具调用的模型。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "模型不支持工具调用"
+            llm_model_not_available:
+              message: "端点有响应，但未列出或提供所配置的模型。请选择该提供商的可用模型后重试。若通过兼容 OpenAI 的转换层调用 Gemini，请使用当前支持的模型，例如 gemini-2.5-flash。"
+              title: "配置的 AI 模型不可用"
+            llm_probe_failed:
+              message: "Sure 无法验证配置的端点和模型。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "LLM 实时检查失败"
+            missing_vector_store:
+              message: "配置向量存储适配器及其所需条件前，无法为上传文档建立索引或搜索。"
+              title: "未配置向量存储"
+            pdf_text_extraction_failed:
+              message: "Sure 无法完成文本优先流程：在本地提取嵌入式 PDF 文本并发送给所配置的模型。没有发送任何客户数据。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "模拟 PDF 文本提取检查失败"
+            pdf_vision_processing_failed:
+              message: "Sure 无法通过所配置的模型完成图像或原生文档 PDF 流程。未发送任何客户数据。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "模拟 PDF 视觉/原生处理检查失败"
+            pgvector_extension_not_enabled:
+              message: "已选择 pgvector 适配器，但此数据库尚未启用向量扩展。请使用包含 pgvector 的 PostgreSQL 镜像，再以数据库所有者或超级用户启用扩展，并使用 VECTOR_STORE_PROVIDER=pgvector 重新运行迁移。"
+              title: "未启用 PostgreSQL 向量扩展"
+            pgvector_probe_failed:
+              message: "Sure 无法查询 pgvector 分块表。请检查 PostgreSQL 权限、向量扩展和 vector_store_chunks 迁移。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "pgvector 存储检查失败"
+            pgvector_table_not_found:
+              message: "pgvector 扩展已启用，但未找到分块表。请检查迁移状态，然后使用 VECTOR_STORE_PROVIDER=pgvector 重新运行向量存储迁移，以便 Sure 创建 vector_store_chunks 表。"
+              title: "缺少 vector_store_chunks 表"
+            qdrant:
+              message: "Qdrant 适配器目前只有框架，文档上传和搜索会失败。请为文档搜索选择 OpenAI 或 pgvector。"
+              title: "尚未实现 Qdrant 支持"
+            unavailable_vector_store:
+              message: "检查适配器要求。使用 pgvector 时，数据库必须提供 vector 扩展或已有的 vector_store_chunks 表。"
+              title: "所选向量存储不可用"
+            vector_probe_failed:
+              message: "Sure 无法验证所选向量存储及所有必需的嵌入服务。失败记录在“设置 → 调试日志”和 Rails.logger 中。"
+              title: "文档搜索实时检查失败"
+          failure_codes:
+            dimensions_mismatch: "嵌入向量维度与已配置的维度不符"
+            extension_not_enabled: "PostgreSQL 向量扩展未启用"
+            invalid_response: "服务返回了意外响应"
+            model_not_available: "提供商未返回所配置的模型"
+            no_tool_call: "模型没有调用健康检查工具"
+            render_missing_binary: "此容器中没有 pdftoppm 渲染器（poppler-utils）"
+            request_failed: "服务请求失败"
+            table_not_found: "未找到 vector_store_chunks 表"
+            timeout: "服务未能在探测超时前响应"
+            tools_refused: "服务在不带工具参数时正常响应，但拒绝了携带工具参数的请求"
+            unsupported_provider: "提供商不支持此检查"
+          function_calling_statuses:
+            failing: "实时检查失败"
+            not_checked: "未检查"
+            not_used: "已接受工具参数，但模型没有调用工具"
+            supported: "实时工具调用成功"
+            unavailable: "配置 LLM 提供商后才能使用"
+            unsupported: "当前生效的提供商/模型不支持"
+          labels:
+            adapter: "适配器"
+            adapter_available: "适配器可用"
+            anthropic_credentials: "Anthropic 凭证"
+            effective_provider: "实际使用的提供商"
+            embedding_dimensions: "嵌入维度"
+            embedding_endpoint: "嵌入端点"
+            embedding_model: "嵌入模型"
+            embedding_probe: "嵌入端点检查"
+            endpoint: "端点"
+            failure_reason: "失败原因"
+            function_calling: "工具调用"
+            function_calling_failure_reason: "工具调用失败原因"
+            llm_request_timeout: "LLM 请求超时"
+            model: "模型"
+            openai_compatible_credentials: "兼容 OpenAI 的 API 凭证"
+            openai_credentials: "OpenAI 凭证"
+            pdf_text_extraction: "PDF 文本提取流程"
+            pdf_text_extraction_failure_reason: "文本提取失败原因"
+            pdf_vision_processing: "PDF 视觉/原生处理流程"
+            pdf_vision_processing_failure_reason: "视觉/原生处理失败原因"
+            pgvector_extension: "PostgreSQL 向量扩展"
+            pgvector_table: "向量分块表"
+            probe_request_timeout: "健康检查探测超时"
+            selected_provider: "所选提供商"
+            storage_probe: "pgvector 存储检查"
+          last_checked: "运行状态检查于 %{time_ago} 前完成，结果会短暂缓存。"
+          llm:
+            description: "实时检查会验证已配置的模型，让模型按助手的实际用法执行一次简单工具调用，然后分别用一页不含客户数据的模拟 PDF 测试文本提取和视觉/原生处理。不会显示凭证值。"
+            title: "LLM 和 PDF 处理"
+          local_setup:
+            description: "通过本地兼容 OpenAI 的端点运行 LLM，将文档向量存储在 pgvector，并把嵌入设置指向兼容 OpenAI 的嵌入端点。PostgreSQL 镜像必须包含向量扩展，且嵌入维度必须与所选模型一致。"
+            title: "建议的本地配置"
+          not_checked_help: "直接打开 AI 状态 URL，或运行检查以验证服务是否正常。"
+          pdf_statuses:
+            failing: "模拟 PDF 检查失败"
+            not_checked: "未检查"
+            supported: "模拟 PDF 检查通过"
+            unavailable: "配置 LLM 提供商后才能使用"
+            unsupported: "当前生效的提供商/模型已禁用或不支持"
+          probe_statuses:
+            failing: "实时检查失败"
+            not_checked: "未检查"
+            not_configured: "未配置"
+            passing: "实时检查通过"
+          providers:
+            anthropic: "Anthropic"
+            cloudflare: "Cloudflare"
+            custom_openai_compatible: "自定义端点"
+            kilo: "Kilo"
+            ollama: "Ollama"
+            openai: "OpenAI"
+            openai_compatible: "兼容 OpenAI"
+            openrouter: "OpenRouter"
+            together: "Together"
+          run_checks: "再次运行检查"
+          values:
+            available: "可用"
+            available_not_enabled: "可用，未启用"
+            configured: "已配置"
+            enabled: "已启用"
+            fallback: "（回退）"
+            'no': "否"
+            not_available: "不可用"
+            not_configured: "未配置"
+            not_found: "未找到"
+            not_set: "未设置"
+            'yes': "是"
+          vector_statuses:
+            failing: "实时检查失败"
+            missing: "未配置"
+            not_checked: "未检查"
+            not_configured: "未配置"
+            passing: "实时检查通过"
+            scaffolded: "已搭建框架"
+          vector_store:
+            description: "实时检查会查询托管向量存储 API，或测试 pgvector 表，并创建一个不保存的短嵌入。"
+            title: "向量存储和文档搜索"
+          worker:
+            configuration_statuses:
+              match: "与 Web 端一致"
+              mismatch: "与 Web 端不同"
+            coverage_notice: "每项检查只验证一个工作进程，即取出该任务的进程。若有多个工作进程副本，通过结果并不能证明每个进程都健康；请再次排入检查以抽查另一个进程。"
+            description: "上方检查由此 Web 进程运行。大多数 AI 任务——助手回复、PDF 处理、嵌入、自动分类和商户识别——实际上由 Sidekiq 工作进程执行。工作进程的网络访问、DNS、代理规则，甚至加载的凭证都可能不同。排入一次检查任务，以验证工作进程自身的配置和连接情况。"
+            empty:
+              description: "点击“验证工作进程配置”排入异步检查。工作进程取到任务后，结果会显示在此处。"
+              title: "尚无工作进程报告"
+            labels:
+              checked_at: "检查时间"
+              configuration: "配置"
+              process: "工作进程"
+            settings_origin:
+              database_backed: "在“设置 → 自托管”中更改的提供商、模型和 API 密钥设置保存在数据库中。写入时 rails-settings-cached 会使共享缓存失效，因此 Web 和工作进程会在下一个请求或排队任务中读取新值，无需重启。"
+              env_backed: "嵌入配置以及仅通过环境变量设置的值，会在各容器启动时固定。Rails 无法更改其他容器的环境，因此更改这些值后，必须重启或重新创建 Web 和工作进程服务；仅重启其中一个的部署操作（例如部分发布、更新 Secret 但未重启 Pod）也无法应用新值。"
+              title: "哪些设置需要重启？"
+            statuses:
+              failing: "失败"
+              passing: "通过"
+              stale: "已过期"
+            title: "工作进程验证"
+            verify_button: "验证工作进程配置"
+        alert:
+          title: "后台任务未运行"
+        counters_section_description: "所有队列的 Sidekiq 汇总计数。"
+        counters_section_title: "任务计数"
+        labels:
+          enqueued: "排队中"
+          failed: "失败"
+          last_heartbeat: "最近心跳"
+          latency: "延迟"
+          max_queue_latency: "最久等待任务时长"
+          processed_total: "已处理总数"
+          processes: "工作进程"
+          queue: "队列"
+          retries: "重试"
+          size: "数量"
+          status: "状态"
+        queues_section_description: "每个队列的队列深度和最久任务等待时长。延迟指最久任务已等待的秒数。"
+        queues_section_title: "队列"
+        status_section_description: "负责同步、余额和净值计算的后台工作进程当前状态。"
+        status_section_title: "Sidekiq 状态"
+        tabs:
+          ai: "AI 状态"
+          background_jobs: "后台任务"
+        title: "系统健康状态"
+        values:
+          healthy: "正常"
+          never: "从未"
+          no_queues: "未注册任何队列，工作进程可能未运行。"
+          seconds: "%{seconds} 秒"
+          time_ago: "%{time_ago} 前"
+          unhealthy: "状态降级"
+      verify_worker_ai:
+        queued: 工作进程检查已排队。工作进程接手后，结果通常会在几秒内显示在下方。

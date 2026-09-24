@@ -3,23 +3,34 @@ zh-CN:
   activerecord:
     attributes:
       goal:
-        name: 名称
-        target_amount: 目标金额
-        currency: 货币
-        target_date: 目标日期
         color: 颜色
+        currency: 货币
+        linked_accounts: 关联账户
+        name: 名称
         notes: 备注
         state: 状态
-        linked_accounts: 关联账户
+        target_amount: 目标金额
+        target_date: 目标日期
     errors:
       models:
         goal:
           attributes:
             base:
-              at_least_one_linked_account_required: 请至少选择一个存款账户为此目标提供资金。
-            linked_accounts:
-              must_be_depository: 所有关联账户都必须是存款账户（支票、储蓄、HSA、CD、货币市场账户）。
-              currency_mismatch: 所有关联账户必须使用同一货币。
-              must_belong_to_family: 关联账户必须属于与目标相同的家庭。
+              at_least_one_linked_account_required: 请至少选择一个账户为此目标提供资金。
+              whole_account_conflict_on_restore: "无法恢复此目标：“%{account_name}”现已全部预留给“%{goal_name}”。请先为其中一个目标输入金额。"
             currency:
               locked_after_linked: 目标关联账户后不能更改货币。
+            kind:
+              locked_once_consumed: "此目标已记录过支出金额，不能改为储备目标。"
+              locked_while_released: "请先重新开启此目标，再将其改为储备目标。"
+            linked_accounts:
+              currency_mismatch: 所有关联账户必须使用同一货币。
+              must_be_fundable: 所有关联账户必须是现金或投资账户。
+              must_belong_to_family: 关联账户必须属于与目标相同的家庭。
+            target_amount:
+              below_consumed: "目标不能低于此目标已记录的支出金额。"
+            target_mode:
+              months_requires_maintained: "只有需要维持余额的储备目标才能按月支出数设置目标值。"
+            target_months:
+              blank: "请说明此储备应覆盖多少个月的支出。"
+              only_with_months_mode: "只有按“月支出数”设定目标时，才能使用此选项。"
