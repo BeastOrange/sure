@@ -113,6 +113,51 @@ class PlaidItem::AccountsSnapshotTest < ActiveSupport::TestCase
     assert_equal [ security ], investments.securities
   end
 
+  test "imports holdings and identifies brokerage cash without investment transactions" do
+    @plaid_item.update!(available_products: [ "investments" ], billed_products: [])
+    @snapshot.stubs(:accounts).returns([
+      OpenStruct.new(account_id: "123", type: "investment", subtype: "brokerage", name: "Investment", mask: "1234",
+        balances: OpenStruct.new(current: 250, available: 250, iso_currency_code: "USD"))
+    ])
+    @plaid_provider.expects(:get_item_investments).with(@plaid_item.access_token).returns(
+      OpenStruct.new(
+        transactions: [],
+        holdings: [
+          Plaid::Holding.new(account_id: "123", security_id: "stock", quantity: 2, institution_price: 100,
+            iso_currency_code: "USD", institution_price_as_of: Date.current),
+          Plaid::Holding.new(account_id: "123", security_id: "cash", quantity: 50, institution_price: 1,
+            iso_currency_code: "USD", institution_price_as_of: Date.current)
+        ],
+        securities: [
+          Plaid::Security.new(security_id: "stock", ticker_symbol: "AAPL", market_identifier_code: "XNAS", type: "equity"),
+          Plaid::Security.new(security_id: "cash", ticker_symbol: "CUR:USD", type: "cash")
+        ]
+      )
+    )
+    data = @snapshot.get_account_data("123")
+    plaid_account = @plaid_item.plaid_accounts.build(plaid_id: "123")
+    PlaidAccount::Importer.new(plaid_account, account_snapshot: data).import
+    account = @plaid_item.family.accounts.create!(name: "Investment", accountable: Investment.new,
+      currency: "USD", balance: 250, cash_balance: 50)
+    AccountProvider.create!(account: account, provider: plaid_account)
+
+    upstream_resolver = mock
+    Security::Resolver.expects(:new).with("AAPL", exchange_operating_mic: "XNAS").returns(upstream_resolver)
+    upstream_resolver.expects(:resolve).returns(securities(:aapl))
+    resolver = PlaidAccount::Investments::SecurityResolver.new(plaid_account)
+
+    assert_difference "Holding.count", 1 do
+      PlaidAccount::Investments::HoldingsProcessor.new(plaid_account, security_resolver: resolver).process
+    end
+
+    holding = account.holdings.find_by!(security: securities(:aapl))
+    assert_equal 2, holding.qty
+    assert_equal 200, holding.amount
+    assert_equal "USD", holding.currency
+    assert_equal 50, PlaidAccount::Investments::BalanceCalculator.new(plaid_account, security_resolver: resolver).cash_balance
+    assert_empty plaid_account.reload.raw_holdings_payload["transactions"]
+  end
+
   test "has no securities for an investment account with neither holdings nor transactions" do
     @plaid_item.update!(available_products: [ "investments" ], billed_products: [])
     @snapshot.stubs(:accounts).returns([ OpenStruct.new(account_id: "123", type: "investment") ])
